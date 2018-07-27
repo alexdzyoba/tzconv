@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
+	"github.com/sahilm/fuzzy"
 	"github.com/spf13/pflag"
 )
 
 func usage() {
-	fmt.Printf("Usage: %s <target timezone> [source time] [source timezone]\n", os.Args[0])
+	fmt.Printf("Usage: %s [options] <target timezone> [source time] [source timezone]\n", os.Args[0])
 }
 
 func formatSelect(flag string) string {
@@ -50,6 +52,23 @@ func formatSelect(flag string) string {
 	}
 }
 
+func loadLocation(s string) (*time.Location, error) {
+	resultSet := fuzzy.Find(s, Locations)
+
+	if len(resultSet) == 0 {
+		return nil, fmt.Errorf("unable to fuzzy find timezone '%s'", s)
+	}
+
+	log.Println("fuzzy find locations ", resultSet)
+	resultIndex := resultSet[0].Index
+	location, err := time.LoadLocation(Timezones[resultIndex])
+	if err != nil {
+		return nil, err
+	}
+
+	return location, nil
+}
+
 func main() {
 	formatFlag := pflag.StringP("format", "f", "time", "Time format (time, unix, rfc1123, rfc3339, kitchen)")
 	pflag.Parse()
@@ -63,7 +82,7 @@ func main() {
 	var err error
 	switch argc {
 	case 3: //tzconv <target timezone> <source time> <source timezone>
-		sourceLocation, err = time.LoadLocation(pflag.Arg(2))
+		sourceLocation, err = loadLocation(pflag.Arg(2))
 		if err != nil {
 			panic(err)
 		}
@@ -81,7 +100,7 @@ func main() {
 		fallthrough // to handle target timezone
 
 	case 1: // tzconv <target tz>
-		targetLocation, err = time.LoadLocation(pflag.Arg(0))
+		targetLocation, err = loadLocation(pflag.Arg(0))
 		if err != nil {
 			panic(err)
 		}
