@@ -51,5 +51,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(sourceTime.In(targetLocation))
+	targetTime := sourceTime.In(targetLocation)
+	fmt.Println(targetTime.Format(time.UnixDate))
+	fmt.Println(targetTime.Format(time.RFC1123))
+	fmt.Println(targetTime.Format(time.RFC3339))
+	fmt.Println(targetTime.Format(time.RFC822))
+	fmt.Println(targetTime.Format(time.RFC850))
+	fmt.Println(targetTime.Format(time.ANSIC))
+	fmt.Println(targetTime.Format(time.Kitchen))
 }
