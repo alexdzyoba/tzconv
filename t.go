@@ -43,6 +43,9 @@ func main() {
 			panic(err)
 		}
 
+	case 1: // tzconv
+		// just print the current time
+
 	default:
 		usage()
 		os.Exit(1)
