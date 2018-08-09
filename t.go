@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -52,14 +52,19 @@ func formatSelect(flag string) string {
 	}
 }
 
+func printTimezones() {
+	for _, tz := range Timezones {
+		fmt.Println(tz)
+	}
+}
+
 func loadLocation(s string) (*time.Location, error) {
 	resultSet := fuzzy.Find(s, Locations)
 
 	if len(resultSet) == 0 {
-		return nil, fmt.Errorf("unable to fuzzy find timezone '%s'", s)
+		return nil, fmt.Errorf("unable to find timezone '%s'", s)
 	}
 
-	log.Println("fuzzy find locations ", resultSet)
 	resultIndex := resultSet[0].Index
 	location, err := time.LoadLocation(Timezones[resultIndex])
 	if err != nil {
@@ -69,12 +74,7 @@ func loadLocation(s string) (*time.Location, error) {
 	return location, nil
 }
 
-func main() {
-	formatFlag := pflag.StringP("format", "f", "time", "Time format (time, unix, rfc1123, rfc3339, kitchen)")
-	pflag.Parse()
-
-	argc := len(pflag.Args())
-
+func tzconv(argc int) (*time.Time, error) {
 	sourceTime := time.Now()
 	sourceLocation := time.Local
 	targetLocation := time.Local
@@ -84,14 +84,14 @@ func main() {
 	case 3: //tzconv <target timezone> <source time> <source timezone>
 		sourceLocation, err = loadLocation(pflag.Arg(2))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		fallthrough // to handle source time and target timezone
 
 	case 2: //tzconv <target tz> <source time>
 		parsedTime, err := time.Parse("15:04", pflag.Arg(1))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		// add date information to the parsed time
@@ -102,7 +102,7 @@ func main() {
 	case 1: // tzconv <target tz>
 		targetLocation, err = loadLocation(pflag.Arg(0))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 	case 0: // tzconv
@@ -110,10 +110,30 @@ func main() {
 
 	default:
 		usage()
-		os.Exit(1)
+		return nil, errors.New("invalid arguments")
 	}
 
 	targetTime := sourceTime.In(targetLocation)
+	return &targetTime, nil
+}
+
+func main() {
+	formatFlag := pflag.StringP("format", "f", "time", "Time format (time, unix, rfc1123, rfc3339, kitchen)")
+	printFlag := pflag.BoolP("print", "p", false, "Print available timezones")
+	pflag.Parse()
+
+	if *printFlag {
+		printTimezones()
+		os.Exit(0)
+	}
+
+	argc := len(pflag.Args())
+
+	targetTime, err := tzconv(argc)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	format := formatSelect(*formatFlag)
 	fmt.Println(targetTime.Format(format))
