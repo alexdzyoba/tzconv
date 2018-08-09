@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/sahilm/fuzzy"
@@ -12,6 +13,7 @@ import (
 
 func usage() {
 	fmt.Printf("Usage: %s [options] <target timezone> [source time] [source timezone]\n", os.Args[0])
+	pflag.PrintDefaults()
 }
 
 func formatSelect(flag string) string {
@@ -52,9 +54,10 @@ func formatSelect(flag string) string {
 	}
 }
 
-func printTimezones() {
-	for _, tz := range Timezones {
-		fmt.Println(tz)
+func printLocations() {
+	sort.Strings(Locations)
+	for _, l := range Locations {
+		fmt.Println(l)
 	}
 }
 
@@ -62,7 +65,7 @@ func loadLocation(s string) (*time.Location, error) {
 	resultSet := fuzzy.Find(s, Locations)
 
 	if len(resultSet) == 0 {
-		return nil, fmt.Errorf("unable to find timezone '%s'", s)
+		return nil, fmt.Errorf("error: unable to find timezone '%s'", s)
 	}
 
 	resultIndex := resultSet[0].Index
@@ -110,7 +113,7 @@ func tzconv(argc int) (*time.Time, error) {
 
 	default:
 		usage()
-		return nil, errors.New("invalid arguments")
+		return nil, errors.New("error: invalid arguments")
 	}
 
 	targetTime := sourceTime.In(targetLocation)
@@ -118,12 +121,15 @@ func tzconv(argc int) (*time.Time, error) {
 }
 
 func main() {
+	pflag.Usage = usage
+	pflag.ErrHelp = errors.New("error: help requested")
+
 	formatFlag := pflag.StringP("format", "f", "time", "Time format (time, unix, rfc1123, rfc3339, kitchen)")
-	printFlag := pflag.BoolP("print", "p", false, "Print available timezones")
+	printFlag := pflag.BoolP("print", "p", false, "Print available locations")
 	pflag.Parse()
 
 	if *printFlag {
-		printTimezones()
+		printLocations()
 		os.Exit(0)
 	}
 
