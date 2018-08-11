@@ -1,0 +1,33 @@
+# .circleci/config.yml
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.10
+
+    working_directory: /go/src/github.com/dzeban/tzconv
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: go test -v ./...
+
+  release:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/dzeban/tzconv
+    steps:
+      - checkout
+      - run: curl -sL https://git.io/goreleaser | bash
+
+workflows:
+  version: 2
+  release:
+    jobs:
+      - build
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9]+/
+
