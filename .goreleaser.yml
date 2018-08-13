@@ -11,6 +11,14 @@ archive:
     windows: Windows
     386: i386
     amd64: x86_64
+nfpm:
+  maintainer: Alex Dzyoba <alex@dzyoba.com>
+  homepage: https://github.com/alexdzyoba/tzconv
+  description: Time converter with timezone fuzzy search
+  license: MIT
+  formats:
+    - rpm
+    - deb
 checksum:
   name_template: 'checksums.txt'
 snapshot:

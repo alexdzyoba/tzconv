@@ -13,7 +13,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.10
+      - image: alexdzyoba/centos-golang:7
     working_directory: /go/src/github.com/dzeban/tzconv
     steps:
       - checkout
