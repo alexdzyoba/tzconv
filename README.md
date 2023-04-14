@@ -84,9 +84,10 @@ https://github.com/alexdzyoba/tzconv/releases/latest
 There are archives with statically linked binaries for Linux and macOS as well
 as deb and RPM packages for Linux.
 
-As an alternative you can install it with `go get`:
+As an alternative you can install it with `go install` if `$GOBIN` is in your
+`$PATH`:
 
-    $ go get github.com/alexdzyoba/tzconv
+    $ go install github.com/alexdzyoba/tzconv@latest
     $ tzconv
     16:22
 
